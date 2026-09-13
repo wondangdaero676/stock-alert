@@ -12,3 +12,15 @@ rules:
     symbol: QQQ
     condition: change_pct_below
     threshold: -5
+
+  - name: KODEX 미국나스닥100 급락
+    market: KR
+    symbol: "379810"
+    condition: change_pct_below
+    threshold: -5
+
+  - name: TIGER 미국S&P500 급락
+    market: KR
+    symbol: "360750"
+    condition: change_pct_below
+    threshold: -5
