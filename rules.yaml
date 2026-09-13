@@ -7,8 +7,8 @@
 #            price_above       현재가가 threshold 이상
 
 rules:
-  - name: QLD 급락
+  - name: QQQ 급락
     market: US
-    symbol: QLD
+    symbol: QQQ
     condition: change_pct_below
-    threshold: -10
+    threshold: -5
