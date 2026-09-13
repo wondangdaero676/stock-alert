@@ -1,0 +1,74 @@
+name: stock-alert
+
+on:
+  schedule:
+    # 미국 정규장 시간대(UTC, 서머타임 여부 모두 포함). 붐비는 정각을 피해 3분부터 5분 간격
+    - cron: "3-58/5 13-21 * * 1-5"
+    # 매일 카카오 토큰 갱신 + 60일 무활동 시 예약 실행이 꺼지는 것 방지
+    - cron: "41 23 * * *"
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 실행할 작업
+        type: choice
+        options: [check, test, refresh]
+        default: check
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stock-alert
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run
+        env:
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          KAKAO_TOKEN_KEY: ${{ secrets.KAKAO_TOKEN_KEY }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          INPUT_COMMAND: ${{ inputs.command }}
+        run: |
+          if [ -n "$INPUT_COMMAND" ]; then
+            cmd="$INPUT_COMMAND"
+          elif [ "$EVENT_SCHEDULE" = "41 23 * * *" ]; then
+            cmd=refresh
+          else
+            cmd=check
+          fi
+          python main.py "$cmd"
+
+      - name: Save state
+        if: always()
+        env:
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update alert state"
+          elif [ "$EVENT_SCHEDULE" = "41 23 * * *" ] && [ $(( $(date +%s) - $(git log -1 --format=%ct) )) -gt 2592000 ]; then
+            git commit --allow-empty -m "chore: keepalive"
+          else
+            exit 0
+          fi
+          for i in 1 2 3; do
+            git pull --rebase && git push && exit 0
+            sleep 5
+          done
+          exit 1

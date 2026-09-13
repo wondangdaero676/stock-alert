@@ -1,0 +1,14 @@
+# 알림 규칙. 규칙마다 거래일당 한 번만 알림이 갑니다.
+#
+# market:    US (Finnhub 시세) | KR (네이버 금융 시세, 종목코드는 따옴표로 감싸기 예: "133690")
+# condition: change_pct_below  전일 대비 등락률(%)이 threshold 이하
+#            change_pct_above  전일 대비 등락률(%)이 threshold 이상
+#            price_below       현재가가 threshold 이하
+#            price_above       현재가가 threshold 이상
+
+rules:
+  - name: QLD 급락
+    market: US
+    symbol: QLD
+    condition: change_pct_below
+    threshold: -10
