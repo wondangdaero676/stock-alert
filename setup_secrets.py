@@ -77,7 +77,7 @@ def main() -> None:
     print(f"  토큰을 암호화해 {kakao.TOKEN_FILE}에 저장했습니다")
 
     print("[3/4] 카카오톡 테스트 메시지 전송")
-    kakao.send(tokens["access_token"], "[주식 알림] 설정 완료! 이 메시지가 보이면 연결이 정상입니다.", "https://finance.yahoo.com")
+    kakao.send(tokens["access_token"], "[주식 알림] 설정 완료! 이 메시지가 보이면 연결이 정상입니다.")
     print("  카카오톡 '나와의 채팅'을 확인하세요")
 
     print("[4/4] GitHub Secrets 등록")

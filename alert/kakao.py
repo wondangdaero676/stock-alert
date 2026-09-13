@@ -51,13 +51,9 @@ def access_token() -> str:
     return body["access_token"]
 
 
-def send(token: str, text: str, url: str) -> None:
-    template = {
-        "object_type": "text",
-        "text": text,
-        "link": {"web_url": url, "mobile_web_url": url},
-        "button_title": "시세 보기",
-    }
+def send(token: str, text: str) -> None:
+    # buttons를 생략하면 "자세히 보기" 기본 버튼이 붙으므로 빈 목록을 명시한다
+    template = {"object_type": "text", "text": text, "link": {}, "buttons": []}
     check_response(requests.post(
         SEND_URL,
         headers={"Authorization": f"Bearer {token}"},

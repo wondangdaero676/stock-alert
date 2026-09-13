@@ -12,8 +12,6 @@ class Quote:
     price: float
     change_pct: float
     session_date: str  # 거래소 현지 기준 거래일. 같은 거래일에 중복 알림을 막는 데 사용
-    currency: str
-    url: str
 
 
 def fetch(market: str, symbol: str) -> Quote:
@@ -39,8 +37,6 @@ def _finnhub(symbol: str) -> Quote:
         price=float(data["c"]),
         change_pct=(data["c"] - data["pc"]) / data["pc"] * 100,
         session_date=datetime.fromtimestamp(data["t"], ZoneInfo("America/New_York")).date().isoformat(),
-        currency="$",
-        url=f"https://finance.yahoo.com/quote/{symbol}",
     )
 
 
@@ -58,6 +54,4 @@ def _naver(code: str) -> Quote:
         price=float(data["closePrice"].replace(",", "")),
         change_pct=float(data["fluctuationsRatio"]),
         session_date=data["localTradedAt"][:10],
-        currency="₩",
-        url=f"https://m.stock.naver.com/domestic/stock/{code}/total",
     )

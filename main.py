@@ -8,21 +8,8 @@ from alert.rules import Rule
 
 log = logging.getLogger("stock-alert")
 
-CONDITION_LABELS = {
-    "change_pct_below": "전일 대비 {t:g}% 이하",
-    "change_pct_above": "전일 대비 {t:g}% 이상",
-    "price_below": "가격 {t:g} 이하",
-    "price_above": "가격 {t:g} 이상",
-}
-
-
-def format_message(rule: Rule, q: Quote) -> str:
-    return (
-        f"[주식 알림] {rule.name}\n"
-        f"{q.symbol} {q.currency}{q.price:,.2f} ({q.change_pct:+.2f}%)\n"
-        f"조건: {CONDITION_LABELS[rule.condition].format(t=rule.threshold)}\n"
-        f"거래일: {q.session_date}"
-    )
+def format_message(q: Quote) -> str:
+    return f"{q.symbol} {q.change_pct:+.1f}% {'하락' if q.change_pct < 0 else '상승'}"
 
 
 def check(dry_run: bool) -> int:
@@ -53,11 +40,11 @@ def check(dry_run: bool) -> int:
 
     if triggered and dry_run:
         for rule, q in triggered:
-            print("----- 보낼 메시지 (dry-run) -----\n" + format_message(rule, q))
+            print("보낼 메시지 (dry-run): " + format_message(q))
     elif triggered:
         token = kakao.access_token()
         for rule, q in triggered:
-            kakao.send(token, format_message(rule, q), q.url)
+            kakao.send(token, format_message(q))
             sent[rule.key] = q.session_date
             state.save_sent(sent)
             log.info("알림 전송: %s", rule.name)
@@ -81,7 +68,7 @@ def main() -> int:
         kakao.access_token()
         log.info("카카오 토큰 갱신 완료")
         return 0
-    kakao.send(kakao.access_token(), "[주식 알림] 테스트 메시지입니다. 연결이 정상입니다.", "https://finance.yahoo.com")
+    kakao.send(kakao.access_token(), "QQQ -10.0% 하락 (테스트 메시지)")
     log.info("테스트 메시지 전송 완료")
     return 0
 
